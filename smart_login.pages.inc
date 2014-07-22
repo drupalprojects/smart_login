@@ -22,8 +22,6 @@ function smart_login_error_403_page() {
       drupal_goto('user/login', array('query' => $destination));
     }
   }
-
-  return;
 }
 
 /**

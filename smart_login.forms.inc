@@ -24,7 +24,8 @@ function _smart_login_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Alter user_login_block() form
+ * Alter user_login_block() form.
+ *
  * @see user_login_block().
  * @see smart_login_user_login_submit().
  */
@@ -34,8 +35,9 @@ function smart_login_form_user_login_block_alter(&$form, &$form_state) {
 
 /**
  * Alter user_login() form.
- * @see user_login().
- * @see smart_login_user_login_submit().
+ *
+ * @see user_login()
+ * @see smart_login_user_login_submit()
  */
 function smart_login_form_user_login_alter(&$form, &$form_state) {
   $form['#submit'][] = 'smart_login_user_login_submit';
@@ -63,8 +65,9 @@ function smart_login_user_login_submit($form, &$form_state) {
 
 /**
  * Alter user_pass() form.
- * @see user_pass().
- * @see smart_login_user_pass_submit().
+ *
+ * @see user_pass()
+ * @see smart_login_user_pass_submit()
  */
 function smart_login_form_user_pass_alter(&$form, &$form_state) {
   if (!path_is_admin(current_path())) {
@@ -84,8 +87,9 @@ function smart_login_form_user_pass_alter(&$form, &$form_state) {
 
 /**
  * Submit handler.
- * @see smart_login_form_user_pass_alter();
- * @see smart_login_form_user_login_block_alter();
+ *
+ * @see smart_login_form_user_pass_alter()
+ * @see smart_login_form_user_login_block_alter()
  */
 function smart_login_user_pass_submit(&$form, &$form_state) {
   $form_state['redirect'] = 'admin/login';
