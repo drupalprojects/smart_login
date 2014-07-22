@@ -1,0 +1,123 @@
+<?php
+
+/**
+ * @file
+ * Smart Login functionalities.
+ * Inspired by IN2PIRE (contact@inspire.vn)
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function smart_login_menu() {
+  $items['admin/login'] = array(
+    'title' => 'Log in',
+    'page callback' => 'smart_login_admin_login_page',
+    'access callback' => TRUE,
+    'theme callback' => 'smart_login_theme_callback',
+    'file' => 'smart_login.pages.inc',
+    'menu_name' => 'navigation',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/password'] = array(
+    'title' => 'Request new password',
+    'page callback' => 'smart_login_admin_password_page',
+    'access callback' => TRUE,
+    'theme callback' => 'smart_login_theme_callback',
+    'file' => 'smart_login.pages.inc',
+    'menu_name' => 'navigation',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/config/system/smart-login'] = array(
+    'title' => 'Smart Login',
+    'description' => 'Smart Login settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('smart_login_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'smart_login.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function smart_login_menu_alter(&$items) {
+  $module_info = array(
+    'module' => 'smart_login',
+    'file' => 'smart_login.pages.inc',
+    'file path' => drupal_get_path('module', 'smart_login'),
+  );
+
+  $items['error/403'] = $module_info + array(
+    'title' => 'Error 403',
+    'page callback' => 'smart_login_error_403_page',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+}
+
+/**
+ * Implements hook_hook_info().
+ */
+function smart_login_hook_info() {
+  $forms_group  = array('group' => 'forms');
+
+  // Divert hook_form_*().
+  $hooks['form_user_login_alter'] = $forms_group;
+  $hooks['form_user_login_block_alter'] = $forms_group;
+  $hooks['form_user_pass_alter'] = $forms_group;
+  $hooks['form_system_site_information_settings_alter'] = $forms_group;
+
+  return $hooks;
+}
+
+function smart_login_get_admin_theme() {
+  static $theme = NULL;
+
+  if (NULL === $theme) {
+    $theme = variable_get('smart_login_admin_theme', 'default');
+
+    if ('default' == $theme) {
+      $theme = variable_get('admin_theme', 'seven');
+    }
+  }
+
+  return $theme;
+}
+
+function smart_login_theme_callback() {
+  return smart_login_get_admin_theme();
+}
+
+function smart_login_destination($path = NULL) {
+  $destination = isset($_GET['destination']) ? array('destination' => $_GET['destination']) : NULL;
+
+  if (empty($path)) {
+    $path = current_path();
+  }
+
+  if (path_is_admin($path)) {
+    // Backend.
+    $defaul_variable = 'smart_login_admin_destination';
+    $default_path = 'admin';
+  }
+  else {
+    // Frontend.
+    $defaul_variable = 'smart_login_front_destination';
+    $default_path = 'user';
+  }
+
+  if (empty($destination)) {
+    $destination['destination'] = variable_get($defaul_variable, $default_path);
+  }
+
+  if ($destination['destination'] == 'user/login' || $destination['destination'] == 'admin/login') {
+    $destination['destination'] = $default_path;
+  }
+
+  return $destination;
+}
