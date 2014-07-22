@@ -2,10 +2,13 @@
 
 /**
  * @file
- * Smart Login forms.
- * Inspired by IN2PIRE (contact@inspire.vn)
+ * Smart Login pages.
+ * Inspired by IN2PIRE (contact@inspire.vn).
  */
 
+/**
+ * Alter form and inject css.
+ */
 function _smart_login_form_alter(&$form, &$form_state) {
   form_load_include($form_state, 'inc', 'smart_login', 'smart_login.forms');
   $admin_theme = smart_login_get_admin_theme();
@@ -21,6 +24,7 @@ function _smart_login_form_alter(&$form, &$form_state) {
 }
 
 /**
+ * Alter user_login_block() form
  * @see user_login_block().
  * @see smart_login_user_login_submit().
  */
@@ -29,6 +33,7 @@ function smart_login_form_user_login_block_alter(&$form, &$form_state) {
 }
 
 /**
+ * Alter user_login() form.
  * @see user_login().
  * @see smart_login_user_login_submit().
  */
@@ -49,6 +54,7 @@ function smart_login_form_user_login_alter(&$form, &$form_state) {
 }
 
 /**
+ * Submit handler.
  * @see smart_login_form_user_login_alter().
  */
 function smart_login_user_login_submit($form, &$form_state) {
@@ -56,6 +62,7 @@ function smart_login_user_login_submit($form, &$form_state) {
 }
 
 /**
+ * Alter user_pass() form.
  * @see user_pass().
  * @see smart_login_user_pass_submit().
  */
@@ -76,6 +83,7 @@ function smart_login_form_user_pass_alter(&$form, &$form_state) {
 }
 
 /**
+ * Submit handler.
  * @see smart_login_form_user_pass_alter();
  * @see smart_login_form_user_login_block_alter();
  */
@@ -83,6 +91,9 @@ function smart_login_user_pass_submit(&$form, &$form_state) {
   $form_state['redirect'] = 'admin/login';
 }
 
+/**
+ * Alter system_site_information_settings() form.
+ */
 function smart_login_form_system_site_information_settings_alter(&$form, &$form_state) {
   $form['error_page']['site_403']['#weight'] = 1;
   $form['error_page']['site_404']['#weight'] = 2;

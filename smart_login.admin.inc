@@ -3,9 +3,12 @@
 /**
  * @file
  * Smart Login admins.
- * Inspired by IN2PIRE (contact@inspire.vn)
+ * Inspired by IN2PIRE (contact@inspire.vn).
  */
 
+/**
+ * Smart Login settings form.
+ */
 function smart_login_settings($form, &$form_state) {
   $form['admin'] = array(
     '#type' => 'fieldset',

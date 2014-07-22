@@ -3,9 +3,12 @@
 /**
  * @file
  * Smart Login pages.
- * Inspired by IN2PIRE (contact@inspire.vn)
+ * Inspired by IN2PIRE (contact@inspire.vn).
  */
 
+/**
+ * Error 403 page.
+ */
 function smart_login_error_403_page() {
   if (!user_is_logged_in()) {
     $path = $_GET['destination'];
@@ -23,6 +26,9 @@ function smart_login_error_403_page() {
   return;
 }
 
+/**
+ * Admin login page.
+ */
 function smart_login_admin_login_page() {
   if (user_is_logged_in()) {
     $url = variable_get('smart_login_admin_loggedin_redirect', 'admin');
@@ -39,6 +45,9 @@ function smart_login_admin_login_page() {
   return drupal_get_form('user_login');
 }
 
+/**
+ * Admin password page.
+ */
 function smart_login_admin_password_page() {
   module_load_include('inc', 'user', 'user.pages');
 

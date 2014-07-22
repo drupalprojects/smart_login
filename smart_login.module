@@ -75,6 +75,9 @@ function smart_login_hook_info() {
   return $hooks;
 }
 
+/**
+ * Get admin theme for smart login.
+ */
 function smart_login_get_admin_theme() {
   static $theme = NULL;
 
@@ -89,10 +92,16 @@ function smart_login_get_admin_theme() {
   return $theme;
 }
 
+/**
+ * Theme callback for admin login and password page.
+ */
 function smart_login_theme_callback() {
   return smart_login_get_admin_theme();
 }
 
+/**
+ * Get destination for smart login.
+ */
 function smart_login_destination($path = NULL) {
   $destination = isset($_GET['destination']) ? array('destination' => $_GET['destination']) : NULL;
 
