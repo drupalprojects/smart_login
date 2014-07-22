@@ -3,6 +3,7 @@
 /**
  * @file
  * Smart Login pages.
+ *
  * Inspired by IN2PIRE (contact@inspire.vn).
  */
 
@@ -26,8 +27,8 @@ function _smart_login_form_alter(&$form, &$form_state) {
 /**
  * Alter user_login_block() form.
  *
- * @see user_login_block().
- * @see smart_login_user_login_submit().
+ * @see user_login_block()
+ * @see smart_login_user_login_submit()
  */
 function smart_login_form_user_login_block_alter(&$form, &$form_state) {
   $form['#submit'][] = 'smart_login_user_login_submit';
@@ -57,7 +58,8 @@ function smart_login_form_user_login_alter(&$form, &$form_state) {
 
 /**
  * Submit handler.
- * @see smart_login_form_user_login_alter().
+ *
+ * @see smart_login_form_user_login_alter()
  */
 function smart_login_user_login_submit($form, &$form_state) {
   $form_state['redirect'] = smart_login_destination();

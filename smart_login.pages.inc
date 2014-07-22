@@ -3,6 +3,7 @@
 /**
  * @file
  * Smart Login pages.
+ *
  * Inspired by IN2PIRE (contact@inspire.vn).
  */
 
