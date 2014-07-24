@@ -11,18 +11,31 @@
  * Error 403 page.
  */
 function smart_login_error_403_page() {
-  if (!user_is_logged_in()) {
-    $path = $_GET['destination'];
-    $destination = array('destination' => $_GET['destination']);
-    unset($_GET['destination']);
+  if (user_is_logged_in()) {
+    // Access Restricted.
+    $path = drupal_get_normal_path(variable_get('smart_login_site_403', ''));
+    $return = NULL;
 
-    if (path_is_admin($path)) {
-      drupal_goto('admin/login', array('query' => $destination));
+    if ($path && $path != $_GET['q']) {
+      // Custom 403 handler. Set the active item in case there are tabs to
+      // display or other dependencies on the path.
+      menu_set_active_item($path);
+      $return = menu_execute_active_handler($path, FALSE);
     }
-    else {
-      drupal_goto('user/login', array('query' => $destination));
-    }
+
+    return $return;
   }
+
+  // Redirect to login page.
+  $path = $_GET['destination'];
+  $destination = array('destination' => $_GET['destination']);
+  unset($_GET['destination']);
+
+  if (path_is_admin($path)) {
+    drupal_goto('admin/login', array('query' => $destination));
+  }
+
+  drupal_goto('user/login', array('query' => $destination));
 }
 
 /**
