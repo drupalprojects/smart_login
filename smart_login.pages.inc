@@ -16,7 +16,7 @@ function smart_login_error_403_page() {
     $path = drupal_get_normal_path(variable_get('smart_login_site_403', ''));
     $return = NULL;
 
-    if ($path && $path != $_GET['q']) {
+    if ($path && $path != current_path()) {
       // Custom 403 handler. Set the active item in case there are tabs to
       // display or other dependencies on the path.
       menu_set_active_item($path);
