@@ -121,7 +121,6 @@ function smart_login_destination($path = NULL) {
  * Alter form and inject css.
  */
 function _smart_login_form_alter(&$form, &$form_state) {
-  form_load_include($form_state, 'inc', 'smart_login', 'smart_login.forms');
   $admin_theme = smart_login_get_admin_theme();
   $css_file = drupal_get_path('module', 'smart_login') . '/css/' . $admin_theme . '.css';
 
