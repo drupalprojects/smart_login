@@ -15,7 +15,7 @@ function smart_login_install() {
   $site_403 = variable_get('site_403', '');
   variable_set('site_403', 'error/403');
   variable_set('smart_login_site_403', $site_403);
-  variable_set('smart_login_admin_theme', 'default');
+  variable_set('smart_login_admin_theme', 'theme:admin');
   variable_set('smart_login_admin_loggedin_redirect', 'admin');
   variable_set('smart_login_admin_destination', 'admin');
   variable_set('smart_login_front_destination', 'user');

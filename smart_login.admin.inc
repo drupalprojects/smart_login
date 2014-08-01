@@ -34,7 +34,7 @@ function smart_login_settings($form, &$form_state) {
     '#title' => t('Theme'),
     '#description' => t('The theme to be used when user goes to admin/login.'),
     '#options' => $theme_options,
-    '#default_value' => variable_get('smart_login_admin_theme', 'default'),
+    '#default_value' => variable_get('smart_login_admin_theme', 'theme:admin'),
   );
 
   $form['admin']['smart_login_admin_destination'] = array(
