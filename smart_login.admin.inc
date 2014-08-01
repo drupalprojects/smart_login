@@ -24,7 +24,9 @@ function smart_login_settings($form, &$form_state) {
   $url_prefix = url(NULL, array('absolute' => TRUE)) . (variable_get('clean_url', 0) ? '' : '?q=');
 
   foreach (list_themes() as $theme_id => $theme) {
-    $theme_options[$theme_id] = $theme->info['name'];
+    if (!empty($theme->status)) {
+      $theme_options[$theme_id] = $theme->info['name'];
+    }
   }
 
   $form['admin']['smart_login_admin_theme'] = array(
