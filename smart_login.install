@@ -44,6 +44,6 @@ function smart_login_update_7101() {
   $theme = variable_get('smart_login_admin_theme', '');
 
   if ('default' == $theme) {
-    variable_get('smart_login_admin_theme', 'theme:admin');
+    variable_set('smart_login_admin_theme', 'theme:admin');
   }
 }
