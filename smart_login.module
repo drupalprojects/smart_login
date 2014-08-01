@@ -18,8 +18,14 @@ function smart_login_get_admin_theme() {
   if (NULL === $theme) {
     $theme = \Drupal::config('smart_login.settings')->get('admin.theme');
 
-    if (empty($theme) || 'default' == $theme) {
-      $theme = \Drupal::config('system.theme')->get('admin');
+    switch (TRUE) {
+      case (empty($theme) || 'theme:admin' == $theme):
+        $theme = \Drupal::config('system.theme')->get('admin');
+        break;
+
+      case 'theme:default' == $theme:
+        $theme = \Drupal::config('system.theme')->get('default');
+        break;
     }
   }
 

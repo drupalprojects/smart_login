@@ -62,7 +62,10 @@ class SettingsForm extends ConfigFormBase {
     $moduleConfig = $this->config('smart_login.settings');
     $urlPrefix = url(NULL, ['absolute' => TRUE]);
 
-    $theme_options = ['default' => t('Default admin theme')];
+    $theme_options = [
+      'theme:default' => t('Default theme'),
+      'theme:admin' => t('Default admin theme'),
+    ];
 
     foreach (list_themes() as $theme_id => $theme) {
       $theme_options[$theme_id] = $theme->info['name'];

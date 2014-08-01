@@ -21,7 +21,7 @@ function smart_login_install() {
   $moduleConfig
     ->set('page.403', $page403)
     ->set('admin.theme', 'default')
-    ->set('admin.loggedin_redirect', 'admin')
+    ->set('admin.loggedin_redirect', 'theme:admin')
     ->set('admin.destination', 'admin')
     ->set('front.destination', 'user')
     ->save();
