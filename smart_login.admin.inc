@@ -17,7 +17,10 @@ function smart_login_settings($form, &$form_state) {
     '#collapsible' => FALSE,
   );
 
-  $theme_options = array('default' => t('Default admin theme'));
+  $theme_options = array(
+    'theme:default' => t('Default theme'),
+    'theme:admin' => t('Default admin theme'),
+  );
   $url_prefix = url(NULL, array('absolute' => TRUE)) . (variable_get('clean_url', 0) ? '' : '?q=');
 
   foreach (list_themes() as $theme_id => $theme) {

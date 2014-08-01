@@ -36,3 +36,14 @@ function smart_login_uninstall() {
   variable_del('smart_login_admin_destination');
   variable_del('smart_login_front_destination');
 }
+
+/**
+ * Add default theme option.
+ */
+function smart_login_update_7101() {
+  $theme = variable_get('smart_login_admin_theme', '');
+
+  if ('default' == $theme) {
+    variable_get('smart_login_admin_theme', 'theme:admin');
+  }
+}

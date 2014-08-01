@@ -68,10 +68,16 @@ function smart_login_get_admin_theme() {
   static $theme = NULL;
 
   if (NULL === $theme) {
-    $theme = variable_get('smart_login_admin_theme', 'default');
+    $theme = variable_get('smart_login_admin_theme', 'theme:admin');
 
-    if ('default' == $theme) {
-      $theme = variable_get('admin_theme', 'seven');
+    switch ($theme) {
+      case 'theme:admin':
+        $theme = variable_get('admin_theme', 'seven');
+        break;
+
+      case 'theme:default':
+        $theme = variable_get('theme_default', 'bartik');
+        break;
     }
   }
 
