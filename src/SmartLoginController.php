@@ -10,17 +10,28 @@ namespace Drupal\smart_login;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Path\AliasManagerInterface;
 use Drupal\Core\Form\FormBuilderInterface;
+use Drupal\Core\Routing\AdminContext;
+use Drupal\Core\Routing\RouteProviderInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Controller for Smart Login.
  */
 class SmartLoginController extends ControllerBase {
+  /**
+   * The current route match.
+   *
+   * @var \Drupal\Core\Routing\RouteProviderInterface
+   */
+  protected $routeProvider;
+
   /**
    * The current route match.
    *
@@ -52,14 +63,15 @@ class SmartLoginController extends ControllerBase {
   /**
    * Creates a new HelpController.
    *
-   * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
+   * @param \Drupal\Core\Routing\RouteMatchInterface $routeMatch
    *   The current route match.
    */
-  public function __construct(RouteMatchInterface $route_match, FormBuilderInterface $form_builder, AliasManagerInterface $alias_manager = NULL, HttpKernel $http_kernel = NULL) {
-    $this->routeMatch = $route_match;
-    $this->formBuilder = $form_builder;
-    $this->aliasManager = $alias_manager;
-    $this->httpKernel = $http_kernel;
+  public function __construct(RouteProviderInterface $routeProvider, RouteMatchInterface $routeMatch, FormBuilderInterface $formBuilder, AliasManagerInterface $aliasManager = NULL, HttpKernelInterface $httpKernel = NULL) {
+    $this->routeProvider = $routeProvider;
+    $this->routeMatch = $routeMatch;
+    $this->formBuilder = $formBuilder;
+    $this->aliasManager = $aliasManager;
+    $this->httpKernel = $httpKernel;
   }
 
   /**
@@ -67,6 +79,7 @@ class SmartLoginController extends ControllerBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('router.route_provider'),
       $container->get('current_route_match'),
       $container->get('form_builder'),
       $container->get('path.alias_manager'),
@@ -111,8 +124,19 @@ class SmartLoginController extends ControllerBase {
       return $content;
     }
 
+    $pathIsAdmin = false;
+
+    try {
+      $url = Url::createFromPath($destination);
+      $route = $this->routeProvider->getRouteByName($url->getRouteName());
+      $pathIsAdmin = \Drupal::service('router.admin_context')->isAdminRoute($route);
+    }
+    catch (Exception $e) {
+      // Empty.
+    }
+
     // Redirect to login page.
-    if (path_is_admin($destination)) {
+    if ($pathIsAdmin) {
       $url = 'admin/login';
     }
     else {
@@ -121,7 +145,7 @@ class SmartLoginController extends ControllerBase {
 
     $url = url($url, ['query' => ['destination' => $destination], 'absolute' => TRUE]);
 
-    return new RedirectResponse($url, 302);
+    return new RedirectResponse($url, Response::HTTP_SEE_OTHER);
   }
 
   /**
@@ -139,9 +163,8 @@ class SmartLoginController extends ControllerBase {
       }
 
       $url = url($url, ['absolute' => TRUE]);
-      $status = 302;
 
-      return new RedirectResponse($url, $status);
+      return new RedirectResponse($url, Response::HTTP_SEE_OTHER);
     }
 
     $build = [];

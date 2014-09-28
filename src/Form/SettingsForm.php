@@ -8,14 +8,23 @@
 namespace Drupal\smart_login\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Path\AliasManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Path\AliasManagerInterface;
+use Drupal\Core\Path\PathValidatorInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Configure settings for Smart Login.
  */
 class SettingsForm extends ConfigFormBase {
+
+  /**
+   * The path validator.
+   *
+   * @var \Drupal\Core\Path\PathValidator
+   */
+  protected $pathValidator;
 
   /**
    * The path alias manager.
@@ -29,12 +38,15 @@ class SettingsForm extends ConfigFormBase {
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The factory for configuration objects.
+   * @param \Drupal\Core\Path\PathValidatorInterface $pathValidator
+   *   The path validator.
    * @param \Drupal\Core\Path\AliasManagerInterface $alias_manager
    *   The path alias manager.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, AliasManagerInterface $alias_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, PathValidatorInterface $pathValidator, AliasManagerInterface $alias_manager) {
     parent::__construct($config_factory);
 
+    $this->pathValidator = $pathValidator;
     $this->aliasManager = $alias_manager;
   }
 
@@ -44,6 +56,7 @@ class SettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
+      $container->get('path.validator'),
       $container->get('path.alias_manager')
     );
   }
@@ -58,7 +71,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, array &$form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state) {
     $moduleConfig = $this->config('smart_login.settings');
     $urlPrefix = url(NULL, ['absolute' => TRUE]);
 
@@ -124,31 +137,32 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function validateForm(array &$form, array &$form_state) {
-    $values = &$form_state['values'];
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    if ($form_state->hasValue('admin_destination')) {
+      $adminDestination = $form_state->getValue('admin_destination');
+      $form_state->setValue('admin_destination', $this->aliasManager->getPathByAlias($adminDestination));
 
-    if (!empty($values['admin_destination'])) {
-      form_set_value($form['admin']['admin_destination'], $this->aliasManager->getPathByAlias($values['admin_destination']), $form_state);
-
-      if (!drupal_valid_path($values['admin_destination'])) {
-        $this->setFormError('admin_destination', $form_state, $this->t("The path '%path' is either invalid or you do not have access to it.", ['%path' => $values['admin_destination']]));
+      if (!$this->pathValidator->isValid($adminDestination)) {
+        $form_state->setErrorByName('admin_destination', $this->t("The path '%path' is either invalid or you do not have access to it.", ['%path' => $adminDestination]));
       }
     }
 
 
-    if (!empty($values['admin_loggedin_redirect'])) {
-      form_set_value($form['admin']['admin_loggedin_redirect'], $this->aliasManager->getPathByAlias($values['admin_loggedin_redirect']), $form_state);
+    if ($form_state->hasValue('admin_loggedin_redirect')) {
+      $adminLoginRedirect = $form_state->getValue('admin_loggedin_redirect');
+      $form_state->setValue('admin_loggedin_redirect', $this->aliasManager->getPathByAlias($adminLoginRedirect));
 
-      if (!drupal_valid_path($values['admin_loggedin_redirect'])) {
-        $this->setFormError('admin_loggedin_redirect', $form_state, $this->t("The path '%path' is either invalid or you do not have access to it.", ['%path' => $values['admin_loggedin_redirect']]));
+      if (!$this->pathValidator->isValid($adminLoginRedirect)) {
+        $form_state->setErrorByName('admin_loggedin_redirect', $this->t("The path '%path' is either invalid or you do not have access to it.", ['%path' => $adminLoginRedirect]));
       }
     }
 
-    if (!empty($values['front_destination'])) {
-      form_set_value($form['front']['front_destination'], $this->aliasManager->getPathByAlias($values['front_destination']), $form_state);
+    if ($form_state->hasValue('front_destination')) {
+      $frontDestination = $form_state->getValue('front_destination');
+      $form_state->setValue('front_destination', $this->aliasManager->getPathByAlias($frontDestination));
 
-      if (!drupal_valid_path($values['front_destination'])) {
-        $this->setFormError('front_destination', $form_state, $this->t("The path '%path' is either invalid or you do not have access to it.", ['%path' => $values['front_destination']]));
+      if (!$this->pathValidator->isValid($frontDestination)) {
+        $form_state->setErrorByName('front_destination', $this->t("The path '%path' is either invalid or you do not have access to it.", ['%path' => $frontDestination]));
       }
     }
 
@@ -158,14 +172,12 @@ class SettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function submitForm(array &$form, array &$form_state) {
-    $values = &$form_state['values'];
-
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->config('smart_login.settings')
-      ->set('admin.theme', $values['admin_theme'])
-      ->set('admin.destination', $values['admin_destination'])
-      ->set('admin.loggedin_redirect', $values['admin_loggedin_redirect'])
-      ->set('front.destination', $values['front_destination'])
+      ->set('admin.theme', $form_state->getValue('admin_theme'))
+      ->set('admin.destination', $form_state->getValue('admin_destination'))
+      ->set('admin.loggedin_redirect', $form_state->getValue('admin_loggedin_redirect'))
+      ->set('front.destination', $form_state->getValue('front_destination'))
       ->save();
 
     parent::submitForm($form, $form_state);

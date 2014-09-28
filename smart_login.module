@@ -8,6 +8,8 @@
  */
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 
 /**
  * Get admin theme for smart login.
@@ -61,13 +63,13 @@ function smart_login_destination($path = NULL) {
     $destination = $default_path;
   }
 
-  return $destination;
+  return Url::createFromPath($destination)->getRouteName();
 }
 
 /**
  * Alter form and inject css.
  */
-function _smart_login_form_alter(&$form, &$form_state) {
+function _smart_login_form_alter(&$form, FormStateInterface $form_state) {
   $adminTheme = smart_login_get_admin_theme();
   $cssFile = drupal_get_path('module', 'smart_login') . '/css/' . $adminTheme . '.css';
 
@@ -86,7 +88,7 @@ function _smart_login_form_alter(&$form, &$form_state) {
  * @see user_login()
  * @see smart_login_user_login_submit()
  */
-function smart_login_form_user_login_form_alter(&$form, &$form_state) {
+function smart_login_form_user_login_form_alter(&$form, FormStateInterface $form_state) {
   $form['#submit'][] = 'smart_login_user_login_submit';
 
   if (!path_is_admin(current_path())) {
@@ -107,8 +109,8 @@ function smart_login_form_user_login_form_alter(&$form, &$form_state) {
  *
  * @see smart_login_form_user_login_alter()
  */
-function smart_login_user_login_submit($form, &$form_state) {
-  $form_state['redirect'] = new RedirectResponse(url(smart_login_destination(), ['absolute' => TRUE]), 302);
+function smart_login_user_login_submit($form, FormStateInterface $form_state) {
+  $form_state->setRedirect(smart_login_destination());
 }
 
 /**
@@ -117,7 +119,7 @@ function smart_login_user_login_submit($form, &$form_state) {
  * @see user_pass()
  * @see smart_login_user_pass_submit()
  */
-function smart_login_form_user_pass_alter(&$form, &$form_state) {
+function smart_login_form_user_pass_alter(&$form, FormStateInterface $form_state) {
   if (!path_is_admin(current_path())) {
     return;
   }
@@ -139,8 +141,8 @@ function smart_login_form_user_pass_alter(&$form, &$form_state) {
  * @see smart_login_form_user_pass_alter()
  * @see smart_login_form_user_login_block_alter()
  */
-function smart_login_user_pass_submit(&$form, &$form_state) {
-  $form_state['redirect'] = new RedirectResponse(url('admin/login', ['absolute' => TRUE]), 302);
+function smart_login_user_pass_submit(&$form, FormStateInterface $form_state) {
+  $form_state->setRedirect('smart_login.admin_login');
 }
 
 /**
@@ -148,7 +150,7 @@ function smart_login_user_pass_submit(&$form, &$form_state) {
  *
  * @see smart_login_form_system_site_information_settings_submit()
  */
-function smart_login_form_system_site_information_settings_alter(&$form, &$form_state) {
+function smart_login_form_system_site_information_settings_alter(&$form, FormStateInterface $form_state) {
   $moduleConfig = \Drupal::config('smart_login.settings');
 
   $form['error_page']['site_403']['#default_value'] = $moduleConfig->get('page.403');
@@ -160,5 +162,5 @@ function smart_login_form_system_site_information_settings_submit($form, $form_s
   $moduleConfig = \Drupal::config('smart_login.settings');
 
   $siteConfig->set('page.403', 'error/403')->save();
-  $moduleConfig->set('page.403', $form_state['values']['site_403'])->save();
+  $moduleConfig->set('page.403', $form_state->getValue('site_403'))->save();
 }
