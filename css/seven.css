@@ -1,9 +1,10 @@
-#branding h1.page-title {
+.content-header h1.page-title {
   width: 100%;
   text-align: center;
 }
 
-#content {
+#block-seven-breadcrumbs,
+main.page-content {
   max-width: 360px;
   margin: 0 auto;
 }

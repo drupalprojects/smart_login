@@ -8,6 +8,7 @@
 namespace Drupal\smart_login\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Path\AliasManagerInterface;
@@ -17,8 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Configure settings for Smart Login.
  */
-class SettingsForm extends ConfigFormBase {
-
+class SmartLoginSettingsForm extends ConfigFormBase {
   /**
    * The path validator.
    *
@@ -34,6 +34,13 @@ class SettingsForm extends ConfigFormBase {
   protected $aliasManager;
 
   /**
+   * The theme handler.
+   *
+   * @var \Drupal\Core\Extension\ThemeHandlerInterface
+   */
+  protected $themeHandler;
+
+  /**
    * Constructs a SiteInformationForm object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -42,12 +49,15 @@ class SettingsForm extends ConfigFormBase {
    *   The path validator.
    * @param \Drupal\Core\Path\AliasManagerInterface $alias_manager
    *   The path alias manager.
+   * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
+   *   The theme handler.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, PathValidatorInterface $pathValidator, AliasManagerInterface $alias_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, PathValidatorInterface $pathValidator, AliasManagerInterface $alias_manager, ThemeHandlerInterface $theme_handler) {
     parent::__construct($config_factory);
 
     $this->pathValidator = $pathValidator;
     $this->aliasManager = $alias_manager;
+    $this->themeHandler = $theme_handler;
   }
 
   /**
@@ -57,7 +67,8 @@ class SettingsForm extends ConfigFormBase {
     return new static(
       $container->get('config.factory'),
       $container->get('path.validator'),
-      $container->get('path.alias_manager')
+      $container->get('path.alias_manager'),
+      $container->get('theme_handler')
     );
   }
 
@@ -73,14 +84,15 @@ class SettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $moduleConfig = $this->config('smart_login.settings');
-    $urlPrefix = url(NULL, ['absolute' => TRUE]);
+    $urlPrefix = $this->url('<none>', [], ['absolute' => TRUE]);
 
     $theme_options = [
       'theme:default' => t('Default theme'),
       'theme:admin' => t('Default admin theme'),
     ];
+    $themes = $this->themeHandler->rebuildThemeData();
 
-    foreach (list_themes() as $theme_id => $theme) {
+    foreach ($themes as $theme_id => $theme) {
       $theme_options[$theme_id] = $theme->info['name'];
     }
 
@@ -181,5 +193,12 @@ class SettingsForm extends ConfigFormBase {
       ->save();
 
     parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getEditableConfigNames() {
+    return ['smart_login.settings'];
   }
 }

@@ -2,11 +2,12 @@
 
 /**
  * @file
- * Definition of \Drupal\smart_login\SmartLoginController.
+ * Definition of \Drupal\smart_login\Controller\SmartLoginController.
  */
 
-namespace Drupal\smart_login;
+namespace Drupal\smart_login\Controller;
 
+use Drupal\Component\Utility\UrlHelper;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Path\AliasManagerInterface;
 use Drupal\Core\Form\FormBuilderInterface;
@@ -66,7 +67,7 @@ class SmartLoginController extends ControllerBase {
    * @param \Drupal\Core\Routing\RouteMatchInterface $routeMatch
    *   The current route match.
    */
-  public function __construct(RouteProviderInterface $routeProvider, RouteMatchInterface $routeMatch, FormBuilderInterface $formBuilder, AliasManagerInterface $aliasManager = NULL, HttpKernelInterface $httpKernel = NULL) {
+  public function __construct(RouteProviderInterface $routeProvider, RouteMatchInterface $routeMatch, FormBuilderInterface $formBuilder, AliasManagerInterface $aliasManager = null, HttpKernelInterface $httpKernel = null) {
     $this->routeProvider = $routeProvider;
     $this->routeMatch = $routeMatch;
     $this->formBuilder = $formBuilder;
@@ -94,22 +95,30 @@ class SmartLoginController extends ControllerBase {
    *   A Symfony direct response object.
    */
   public function error403Page() {
+    global $base_path;
     $request = \Drupal::request();
-    $destination = $request->get('destination', NULL);
-    $request->query->set('destination', NULL);
+    $destination = $request->get('destination', null);
+    $interalDestination = null;
+    $request->query->set('destination', null);
+
+    if (!UrlHelper::isExternal($destination)) {
+      $interalDestination = str_replace($base_path, '/', '/' . ltrim($destination, '/'));
+      $destination = null;
+    }
 
     if (\Drupal::currentUser()->isAuthenticated()) {
       // Access Restricted.
       $page403 = \Drupal::config('smart_login.settings')->get('page.403');
-      $path = $this->aliasManager->getPathByAlias($page403);
-      $return = NULL;
+      $path = '/' . ltrim($this->aliasManager->getPathByAlias($page403), '/');
+      $current_path = \Drupal::service('path.current')->getPath();
+      $return = null;
 
-      if ($path && $path != current_path() && $path != $destination) {
+      if ('/' != $path && $path != $current_path && $path != $destination) {
         if ($request->getMethod() === 'POST') {
-          $subrequest = Request::create($request->getBaseUrl() . '/' . $path, 'POST', ['destination' => $destination, '_exception_statuscode' => 403] + $request->request->all(), $request->cookies->all(), [], $request->server->all());
+          $subrequest = Request::create($request->getBaseUrl() . $path, 'POST', ['destination' => $destination, '_exception_statuscode' => 403] + $request->request->all(), $request->cookies->all(), [], $request->server->all());
         }
         else {
-          $subrequest = Request::create($request->getBaseUrl() . '/' . $path, 'GET', ['destination' => $destination, '_exception_statuscode' => 403], $request->cookies->all(), [], $request->server->all());
+          $subrequest = Request::create($request->getBaseUrl() . $path, 'GET', ['destination' => $destination, '_exception_statuscode' => 403], $request->cookies->all(), [], $request->server->all());
         }
 
         $response = $this->httpKernel->handle($subrequest, HttpKernelInterface::SUB_REQUEST);
@@ -126,24 +135,26 @@ class SmartLoginController extends ControllerBase {
 
     $pathIsAdmin = false;
 
-    try {
-      $url = Url::createFromPath($destination);
-      $route = $this->routeProvider->getRouteByName($url->getRouteName());
-      $pathIsAdmin = \Drupal::service('router.admin_context')->isAdminRoute($route);
-    }
-    catch (Exception $e) {
-      // Empty.
+    if (!empty($interalDestination)) {
+      try {
+        $url = Url::fromUri('internal:' . $interalDestination);
+        $route = \Drupal::service('router.route_provider')->getRouteByName($url->getRouteName());
+        $pathIsAdmin = \Drupal::service('router.admin_context')->isAdminRoute($route);
+      }
+      catch (\Exception $e) {
+        // Empty.
+      }
     }
 
     // Redirect to login page.
     if ($pathIsAdmin) {
-      $url = 'admin/login';
+      $url = 'smart_login.admin_login';
     }
     else {
-      $url = 'user/login';
+      $url = 'user.login';
     }
 
-    $url = url($url, ['query' => ['destination' => $destination], 'absolute' => TRUE]);
+    $url = \Drupal::url($url, ['query' => ['destination' => $destination]], ['absolute' => TRUE]);
 
     return new RedirectResponse($url, Response::HTTP_SEE_OTHER);
   }
@@ -156,13 +167,21 @@ class SmartLoginController extends ControllerBase {
    */
   public function loginPage() {
     if (\Drupal::currentUser()->isAuthenticated()) {
-      $url = \Drupal::config('smart_login.settings')->get('admin.loggedin_redirect');
+      $url = \Drupal::configFactory()->get('smart_login.settings')->get('admin.loggedin_redirect');
 
       if (empty($url)) {
-        $url = 'admin';
+        $url = 'system.admin';
+      } else {
+        try {
+          $url = Url::fromUri('internal:/' . ltrim($url, '/'));
+          $url = $url->getRouteName();
+        }
+        catch (\Exception $e) {
+          $url = 'system.admin';
+        }
       }
 
-      $url = url($url, ['absolute' => TRUE]);
+      $url = \Drupal::url($url, [], ['absolute' => TRUE]);
 
       return new RedirectResponse($url, Response::HTTP_SEE_OTHER);
     }

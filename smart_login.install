@@ -11,8 +11,8 @@
  * Implements hook_install().
  */
 function smart_login_install() {
-  $siteConfig = \Drupal::config('system.site');
-  $moduleConfig = \Drupal::config('smart_login.settings');
+  $siteConfig = \Drupal::configFactory()->getEditable('system.site');
+  $moduleConfig = \Drupal::configFactory()->getEditable('smart_login.settings');
 
   // Install 403 page.
   $page403 = $siteConfig->get('page.403');
@@ -31,8 +31,8 @@ function smart_login_install() {
  * Implements hook_uninstall().
  */
 function smart_login_uninstall() {
-  $siteConfig = \Drupal::config('system.site');
-  $moduleConfig = \Drupal::config('smart_login.settings');
+  $siteConfig = \Drupal::configFactory()->getEditable('system.site');
+  $moduleConfig = \Drupal::configFactory()->getEditable('smart_login.settings');
 
   // Reset 403 page.
   $page403 = $moduleConfig->get('page.403');
